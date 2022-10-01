@@ -9,7 +9,7 @@ import UIKit
 import AVFoundation
 import AVKit
 
-class ViewPlayerViewController: UIViewController {
+class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
     @IBOutlet weak var videoListCollectionView: UICollectionView!
     @IBOutlet weak var videoPlayerContainerView: UIView!
     
@@ -30,16 +30,15 @@ class ViewPlayerViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        playVideo()
+        //playVideo()
     }
     
-    func playVideo() {
+    func playVideo(videoFile: VideoFile) {
         let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last
-        let dir2 = dir?.appendingPathComponent("video.MP4")
+        let dir2 = dir?.appendingPathComponent(videoFile.fileName)
 //        let image = UIImage(contentsOfFile: dir2!.absoluteString)
         
 //        print(FileManager.default.fileExists(atPath: dir2!.absoluteString))
-        print("VIdeoURL: \(dir2!.absoluteString)")
         let videoURL = URL(string: dir2!.absoluteString)
         let player = AVPlayer(url: videoURL!)
         let playerLayer = AVPlayerLayer(player: player)
@@ -126,7 +125,33 @@ extension ViewPlayerViewController: UICollectionViewDelegate, UICollectionViewDa
         
         cell.videoFile = videoFiles[indexPath.row]
         cell.previewImage.image = image
-        print("IMage shown")
+        cell.delegate = self
+        
+    
+        let filePath = dir?.appendingPathComponent(cell.videoFile!.fileName)
+        let asset = AVURLAsset(url: filePath!)
+        let imgGenerator = AVAssetImageGenerator(asset: asset)
+        //let cgImage = try? await imgGenerator.image(at: CMTime(value: 10, timescale: 1))
+        var operationQueue = OperationQueue()
+        DispatchQueue.global(qos: .background).async {
+            let operation1 = BlockOperation(block: {
+                
+                imgGenerator.generateCGImagesAsynchronously(forTimes: [NSValue(time: CMTime(value: 10, timescale: 1))]) {
+                    requestedTime, image, actualTime, result, err in
+                    OperationQueue.main.addOperation({
+                        if let image = image {
+                            let uiImage = UIImage(cgImage: image)
+                            cell.previewImage.image = uiImage
+                            print("Setting preview image")
+                        } else {
+                            print("Image is null")
+                        }
+                    })
+                }
+            })
+            operationQueue.addOperation(operation1)
+            }
+        
         return cell
     }
     

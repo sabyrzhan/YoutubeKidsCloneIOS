@@ -15,7 +15,7 @@ struct VideoFile {
         get {
             let urlString = url!.absoluteString
             let number = String(format: "%05d", videoNumber!)
-            return number + "_" + title! + ".mp4"
+            return number + "_" + title! + ".MP4"
         }
     }
 }
