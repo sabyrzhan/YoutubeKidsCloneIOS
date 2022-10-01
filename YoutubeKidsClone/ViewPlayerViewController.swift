@@ -13,15 +13,19 @@ class ViewPlayerViewController: UIViewController {
     @IBOutlet weak var videoListCollectionView: UICollectionView!
     @IBOutlet weak var videoPlayerContainerView: UIView!
     
+    var videoFiles: [VideoFile] = []
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if let imageData = UIImage(named: "main_bg")?.jpegData(compressionQuality: 1.0)
-            {
-                save(imageData: imageData,
-                     toFolder: "MyAppImages",
-                     withFileName: "dog.jpeg")
-            }
+//        if let imageData = UIImage(named: "main_bg")?.jpegData(compressionQuality: 1.0)
+//            {
+//                save(imageData: imageData,
+//                     toFolder: "MyAppImages",
+//                     withFileName: "dog.jpeg")
+//            }
+        
+        self.videoFiles = readFileNames()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -43,6 +47,38 @@ class ViewPlayerViewController: UIViewController {
         self.videoPlayerContainerView.layer.addSublayer(playerLayer)
         player.play()
 
+    }
+    
+    func readFileNames() -> [VideoFile] {
+        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last
+        let fileName = dir?.appendingPathComponent("videos_url.txt")
+        
+        let data = try! String(contentsOf: fileName!, encoding: .utf8)
+        let lines = data.components(separatedBy: .newlines)
+        
+        var result:[VideoFile] = []
+        
+        var title: String = ""
+        
+        var videoNumber = 1
+        
+        for line in lines {
+            if line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                continue
+            }
+            
+            if line.starts(with: "#") {
+                let index = line.index(after: line.firstIndex(of: "#")!)
+                let range = index..<line.endIndex
+                title = String(line[range])
+            } else {
+                let videoFile = VideoFile(title: title, videoNumber: videoNumber, url: URL(string: line))
+                result.append(videoFile)
+                videoNumber += 1
+            }
+        }
+        
+        return result
     }
     
     func save(imageData: Data,
@@ -77,7 +113,7 @@ class ViewPlayerViewController: UIViewController {
 
 extension ViewPlayerViewController: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 10;
+        return videoFiles.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -88,6 +124,7 @@ extension ViewPlayerViewController: UICollectionViewDelegate, UICollectionViewDa
         let data = try? Data(contentsOf: dir2!)
         let image = UIImage(data: data!)
         
+        cell.videoFile = videoFiles[indexPath.row]
         cell.previewImage.image = image
         print("IMage shown")
         return cell

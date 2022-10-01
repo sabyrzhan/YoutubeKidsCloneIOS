@@ -10,4 +10,5 @@ import UIKit
 class PlayerVideoPreviewCell: UICollectionViewCell {
     
     @IBOutlet weak var previewImage: UIImageView!
+    var videoFile: VideoFile?
 }

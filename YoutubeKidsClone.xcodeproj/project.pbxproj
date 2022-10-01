@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F58327F028E845F800662085 /* PlayerVideoPreviewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F58327EF28E845F800662085 /* PlayerVideoPreviewCell.swift */; };
+		F58327F328E8811300662085 /* VideoFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = F58327F228E8811300662085 /* VideoFile.swift */; };
 		F5E18E7328E7786F0086052F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E18E7228E7786F0086052F /* AppDelegate.swift */; };
 		F5E18E7528E7786F0086052F /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E18E7428E7786F0086052F /* SceneDelegate.swift */; };
 		F5E18E7728E7786F0086052F /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E18E7628E7786F0086052F /* ViewController.swift */; };
@@ -20,6 +21,7 @@
 
 /* Begin PBXFileReference section */
 		F58327EF28E845F800662085 /* PlayerVideoPreviewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerVideoPreviewCell.swift; sourceTree = "<group>"; };
+		F58327F228E8811300662085 /* VideoFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoFile.swift; sourceTree = "<group>"; };
 		F5E18E6F28E7786F0086052F /* YoutubeKidsClone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YoutubeKidsClone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F5E18E7228E7786F0086052F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F5E18E7428E7786F0086052F /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -43,6 +45,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		F58327F128E8810700662085 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				F58327F228E8811300662085 /* VideoFile.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		F5E18E6628E7786F0086052F = {
 			isa = PBXGroup;
 			children = (
@@ -62,6 +72,7 @@
 		F5E18E7128E7786F0086052F /* YoutubeKidsClone */ = {
 			isa = PBXGroup;
 			children = (
+				F58327F128E8810700662085 /* Models */,
 				F5E18E7228E7786F0086052F /* AppDelegate.swift */,
 				F5E18E7428E7786F0086052F /* SceneDelegate.swift */,
 				F5E18E7628E7786F0086052F /* ViewController.swift */,
@@ -148,6 +159,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F5E18E7728E7786F0086052F /* ViewController.swift in Sources */,
+				F58327F328E8811300662085 /* VideoFile.swift in Sources */,
 				F5E18E8728E7810B0086052F /* MainCollectionCellCollectionViewCell.swift in Sources */,
 				F5E18E7328E7786F0086052F /* AppDelegate.swift in Sources */,
 				F5E18E7528E7786F0086052F /* SceneDelegate.swift in Sources */,
