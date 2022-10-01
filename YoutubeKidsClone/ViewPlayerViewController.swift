@@ -14,6 +14,7 @@ class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
     @IBOutlet weak var videoPlayerContainerView: UIView!
     
     var videoFiles: [VideoFile] = []
+    var player: AVPlayer?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -34,17 +35,30 @@ class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
     }
     
     func playVideo(videoFile: VideoFile) {
+        if let player = player {
+            let playingURL = (player.currentItem?.asset as! AVURLAsset).url.absoluteString
+            var index = playingURL.lastIndex(of: "/")
+            index = playingURL.index(after: index!)
+            let substr = playingURL[index!..<playingURL.endIndex]
+            let playingPath = String(substr).removingPercentEncoding!
+            let videoFilename = videoFile.fileName
+            if playingPath == videoFilename {
+                print("Already playing")
+                return
+            }
+            player.replaceCurrentItem(with: nil)
+        }
         let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last
         let dir2 = dir?.appendingPathComponent(videoFile.fileName)
 //        let image = UIImage(contentsOfFile: dir2!.absoluteString)
         
 //        print(FileManager.default.fileExists(atPath: dir2!.absoluteString))
         let videoURL = URL(string: dir2!.absoluteString)
-        let player = AVPlayer(url: videoURL!)
+        player = AVPlayer(url: videoURL!)
         let playerLayer = AVPlayerLayer(player: player)
         playerLayer.frame = self.videoPlayerContainerView.bounds
         self.videoPlayerContainerView.layer.addSublayer(playerLayer)
-        player.play()
+        player?.play()
 
     }
     
