@@ -44,6 +44,7 @@ class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
             let videoFilename = videoFile.fileName
             if playingPath == videoFilename {
                 print("Already playing")
+                videoPlayerContainerView.bounds = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
                 return
             }
             player.replaceCurrentItem(with: nil)
