@@ -44,7 +44,6 @@ class ViewController: UIViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         print("Preparing for \(segue.identifier)")
         if segue.identifier == "playVideoSegue" {
-            print("Setting playVideoSegue values...")
             let dest = segue.destination as! ViewPlayerViewController
             let cell = sender as! MainCollectionCellCollectionViewCell
             

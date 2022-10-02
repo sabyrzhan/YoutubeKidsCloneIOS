@@ -90,7 +90,7 @@ class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
             player.replaceCurrentItem(with: nil)
         }
         let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last
-        let dir2 = dir?.appendingPathComponent(videoFile.fileName)
+        let dir2 = dir?.appendingPathComponent(videoFile.fileName!)
 //        let image = UIImage(contentsOfFile: dir2!.absoluteString)
         
 //        print(FileManager.default.fileExists(atPath: dir2!.absoluteString))
@@ -104,6 +104,18 @@ class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
         
         self.videoPlayerContainerView.layer.addSublayer(playerLayer!)
         player?.play()
+        
+        for (i, elem) in videoFiles.enumerated() {
+            let indexPath = IndexPath(row: i, section: 0)
+            let cell = videoListCollectionView.cellForItem(at: indexPath)
+            cell?.backgroundColor = .black
+            if elem.fileName! == videoFile.fileName! {
+                let indexPath = IndexPath(row: i, section: 0)
+                let cell = videoListCollectionView.cellForItem(at: indexPath)
+                cell?.backgroundColor = .link
+                videoListCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
+            }
+        }
 
     }
     
@@ -165,6 +177,13 @@ class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
 }
 
 extension ViewPlayerViewController: UICollectionViewDelegate, UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let cell = videoListCollectionView.dequeueReusableCell(withReuseIdentifier: "videoItem", for: indexPath) as! PlayerVideoPreviewCell
+        cell.layer.borderColor = UIColor.link.cgColor
+        
+        print("Selected")
+    }
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return videoFiles.count
     }
@@ -173,20 +192,16 @@ extension ViewPlayerViewController: UICollectionViewDelegate, UICollectionViewDa
         let cell = videoListCollectionView.dequeueReusableCell(withReuseIdentifier: "videoItem", for: indexPath) as! PlayerVideoPreviewCell
         
         let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last
-        let dir2 = dir?.appendingPathComponent("MyAppImages").appendingPathComponent("dog.jpeg")
-        let data = try? Data(contentsOf: dir2!)
-        let image = UIImage(data: data!)
         
         cell.videoFile = videoFiles[indexPath.row]
-        cell.previewImage.image = image
         cell.delegate = self
         
     
-        let filePath = dir?.appendingPathComponent(cell.videoFile!.fileName)
+        let filePath = dir?.appendingPathComponent(cell.videoFile!.fileName!)
         let asset = AVURLAsset(url: filePath!)
         let imgGenerator = AVAssetImageGenerator(asset: asset)
         //let cgImage = try? await imgGenerator.image(at: CMTime(value: 10, timescale: 1))
-        var operationQueue = OperationQueue()
+        let operationQueue = OperationQueue()
         DispatchQueue.global(qos: .background).async {
             let operation1 = BlockOperation(block: {
                 

@@ -8,38 +8,36 @@
 import Foundation
 import UIKit
 import AVFoundation
+import os
 
-struct VideoFile {
+struct VideoFile: Codable {
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: VideoFile.self))
+    
     var title: String?
     var videoNumber: Int?
     var url: URL?
-    var fileName: String {
-        get {
-            let urlString = url!.absoluteString
-            let number = String(format: "%05d", videoNumber!)
-            return number + "_" + title! + ".MP4"
-        }
-    }
+    var fileName: String?
     
     func updatePreviewImage(imageView: UIImageView) {
         let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last
-        let filePath = dir?.appendingPathComponent(fileName)
+        let filePath = dir?.appendingPathComponent(fileName!)
         let asset = AVURLAsset(url: filePath!)
         let imgGenerator = AVAssetImageGenerator(asset: asset)
         //let cgImage = try? await imgGenerator.image(at: CMTime(value: 10, timescale: 1))
         var operationQueue = OperationQueue()
         DispatchQueue.global(qos: .background).async {
             let operation1 = BlockOperation(block: {
-                
-                imgGenerator.generateCGImagesAsynchronously(forTimes: [NSValue(time: CMTime(value: 10, timescale: 1))]) {
+                imgGenerator.generateCGImagesAsynchronously(forTimes: [NSValue(time: CMTime(value: 30, timescale: 1))]) {
                     requestedTime, image, actualTime, result, err in
                     OperationQueue.main.addOperation({
                         if let image = image {
                             let uiImage = UIImage(cgImage: image)
                             imageView.image = uiImage
-                            print("Setting preview image")
+                            VideoFile.logger.info("Image found. Setting preview image")
                         } else {
-                            print("Image is null")
+                            if let err = err {
+                                VideoFile.logger.error("Preview generation error: \(err.localizedDescription). File path: \(filePath!.absoluteString.removingPercentEncoding!)")
+                            }
                         }
                     })
                 }
@@ -50,35 +48,23 @@ struct VideoFile {
     
     static func readFileNames() -> [VideoFile] {
         let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last
-        let fileName = dir?.appendingPathComponent("videos_url.txt")
+        let fileName = dir?.appendingPathComponent("file_list.json")
+        
+        let jsonDecoder = JSONDecoder()
+        jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
         
         var result:[VideoFile] = []
         
         do {
-            let data = try String(contentsOf: fileName!, encoding: .utf8)
-            let lines = data.components(separatedBy: .newlines)
+            let data = try Data(contentsOf: fileName!)
             
-            var title: String = ""
-            
-            var videoNumber = 1
-            
-            for line in lines {
-                if line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    continue
-                }
-                
-                if line.starts(with: "#") {
-                    let index = line.index(after: line.firstIndex(of: "#")!)
-                    let range = index..<line.endIndex
-                    title = String(line[range])
-                } else {
-                    let videoFile = VideoFile(title: title, videoNumber: videoNumber, url: URL(string: line))
-                    result.append(videoFile)
-                    videoNumber += 1
-                }
-            }
+            result = try jsonDecoder.decode([VideoFile].self, from: data)
         } catch {
-            print("Error reading files: \(error)")
+            logger.warning("Error reading files: \(error.localizedDescription). Returning empty array")
+        }
+        
+        for (i, elem) in result.enumerated() {
+            result[i].fileName = elem.fileName!.uppercased()
         }
         
         return result
