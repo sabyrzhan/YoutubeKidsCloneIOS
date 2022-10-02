@@ -17,6 +17,9 @@ class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
     var player: AVPlayer?
     var playerLayer: AVPlayerLayer?
     
+    
+    var selectedVideoFile: VideoFile?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -27,12 +30,31 @@ class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
 //                     withFileName: "dog.jpeg")
 //            }
         
-        self.videoFiles = readFileNames()
+        self.videoFiles = VideoFile.readFileNames()
+        videoListCollectionView.backgroundColor = UIColor.clear.withAlphaComponent(0)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        if let player = player {
+            player.replaceCurrentItem(with: nil)
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        //playVideo()
+        
+        var i = 0
+        for videoFile in videoFiles {
+            if videoFile.fileName == selectedVideoFile?.fileName {
+                let indexPath = IndexPath(row: i, section: 0)
+                videoListCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
+                playVideo(videoFile: selectedVideoFile!)
+                break
+            }
+            
+            i += 1
+        }
     }
     
     func playVideo(videoFile: VideoFile) {
@@ -110,38 +132,6 @@ class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
             previousFrameView = currentViewFrame
             previousFramePlayer = currentPlayerFrame
         }
-    }
-    
-    func readFileNames() -> [VideoFile] {
-        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last
-        let fileName = dir?.appendingPathComponent("videos_url.txt")
-        
-        let data = try! String(contentsOf: fileName!, encoding: .utf8)
-        let lines = data.components(separatedBy: .newlines)
-        
-        var result:[VideoFile] = []
-        
-        var title: String = ""
-        
-        var videoNumber = 1
-        
-        for line in lines {
-            if line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                continue
-            }
-            
-            if line.starts(with: "#") {
-                let index = line.index(after: line.firstIndex(of: "#")!)
-                let range = index..<line.endIndex
-                title = String(line[range])
-            } else {
-                let videoFile = VideoFile(title: title, videoNumber: videoNumber, url: URL(string: line))
-                result.append(videoFile)
-                videoNumber += 1
-            }
-        }
-        
-        return result
     }
     
     func save(imageData: Data,
