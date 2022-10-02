@@ -52,29 +52,33 @@ struct VideoFile {
         let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last
         let fileName = dir?.appendingPathComponent("videos_url.txt")
         
-        let data = try! String(contentsOf: fileName!, encoding: .utf8)
-        let lines = data.components(separatedBy: .newlines)
-        
         var result:[VideoFile] = []
         
-        var title: String = ""
-        
-        var videoNumber = 1
-        
-        for line in lines {
-            if line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                continue
-            }
+        do {
+            let data = try String(contentsOf: fileName!, encoding: .utf8)
+            let lines = data.components(separatedBy: .newlines)
             
-            if line.starts(with: "#") {
-                let index = line.index(after: line.firstIndex(of: "#")!)
-                let range = index..<line.endIndex
-                title = String(line[range])
-            } else {
-                let videoFile = VideoFile(title: title, videoNumber: videoNumber, url: URL(string: line))
-                result.append(videoFile)
-                videoNumber += 1
+            var title: String = ""
+            
+            var videoNumber = 1
+            
+            for line in lines {
+                if line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    continue
+                }
+                
+                if line.starts(with: "#") {
+                    let index = line.index(after: line.firstIndex(of: "#")!)
+                    let range = index..<line.endIndex
+                    title = String(line[range])
+                } else {
+                    let videoFile = VideoFile(title: title, videoNumber: videoNumber, url: URL(string: line))
+                    result.append(videoFile)
+                    videoNumber += 1
+                }
             }
+        } catch {
+            print("Error reading files: \(error)")
         }
         
         return result

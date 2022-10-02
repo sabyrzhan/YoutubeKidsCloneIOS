@@ -18,6 +18,27 @@ class ViewController: UIViewController {
         
         videoFiles = VideoFile.readFileNames()
         mainCollectionView.backgroundColor = UIColor.clear.withAlphaComponent(0)
+        createTestFolderForFilesApp()
+    }
+    
+    func createTestFolderForFilesApp() {
+        DispatchQueue.global().async
+        {
+            let manager = FileManager.default
+            let documentFolder = manager.urls(for: .documentDirectory,
+                                              in: .userDomainMask).last
+            let folder = documentFolder?.appendingPathComponent("testFolder")
+
+            do {
+                try manager.createDirectory(at: folder!,
+                                            withIntermediateDirectories: true,
+                                            attributes: [:])
+            }
+            catch
+            {
+                print("Error creating test folder: \(error.localizedDescription)")
+            }
+        }
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
