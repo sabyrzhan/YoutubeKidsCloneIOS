@@ -15,6 +15,7 @@ class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
     
     var videoFiles: [VideoFile] = []
     var player: AVPlayer?
+    var playerLayer: AVPlayerLayer?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -44,7 +45,24 @@ class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
             let videoFilename = videoFile.fileName
             if playingPath == videoFilename {
                 print("Already playing")
-                videoPlayerContainerView.bounds = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+                //videoPlayerContainerView.frame = UIScreen.main.bounds
+//                if let playerLayer = playerLayer {
+//                    print("Player layer is active")
+////                    UIView.animate(withDuration: 0.15) {
+////                            playerLayer.setAffineTransform(CGAffineTransform(rotationAngle: CGFloat(M_PI / 2)))
+////                            playerLayer.frame = UIScreen.main.bounds
+////                        }
+//                    videoPlayerContainerView.frame = UIScreen.main.bounds
+//                    playerLayer.frame = UIScreen.main.bounds
+//                    self.view.bringSubviewToFront(videoPlayerContainerView)
+////                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+////                        self.view.setNeedsDisplay()
+////                        self.videoPlayerContainerView.setNeedsDisplay()
+////                        playerLayer.setNeedsDisplay()
+////                    }
+//
+//                }
+                
                 return
             }
             player.replaceCurrentItem(with: nil)
@@ -56,11 +74,42 @@ class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
 //        print(FileManager.default.fileExists(atPath: dir2!.absoluteString))
         let videoURL = URL(string: dir2!.absoluteString)
         player = AVPlayer(url: videoURL!)
-        let playerLayer = AVPlayerLayer(player: player)
-        playerLayer.frame = self.videoPlayerContainerView.bounds
-        self.videoPlayerContainerView.layer.addSublayer(playerLayer)
+        playerLayer = AVPlayerLayer(player: player)
+        playerLayer!.frame = self.videoPlayerContainerView.bounds
+        playerLayer!.videoGravity = .resizeAspect
+        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(onTap))
+        videoPlayerContainerView.addGestureRecognizer(tapGestureRecognizer)
+        
+        self.videoPlayerContainerView.layer.addSublayer(playerLayer!)
         player?.play()
 
+    }
+    
+    var previousFrameView: CGRect?
+    var previousFramePlayer: CGRect?
+    var isNavBarHidden: Bool = false
+    
+    @objc func onTap() {
+        if let playerLayer = playerLayer {
+            let currentViewFrame = videoPlayerContainerView.frame
+            let currentPlayerFrame = playerLayer.frame
+            
+            if let previousFrameView = previousFrameView,
+               let previousFramePlayer = previousFramePlayer {
+                videoPlayerContainerView.frame = previousFrameView
+                playerLayer.frame = previousFramePlayer
+            } else {
+                videoPlayerContainerView.frame = UIScreen.main.bounds
+                playerLayer.frame = UIScreen.main.bounds
+                self.view.bringSubviewToFront(videoPlayerContainerView)
+            }
+            
+            self.navigationItem.setHidesBackButton(!isNavBarHidden, animated: true)
+            isNavBarHidden = !isNavBarHidden
+            
+            previousFrameView = currentViewFrame
+            previousFramePlayer = currentPlayerFrame
+        }
     }
     
     func readFileNames() -> [VideoFile] {
