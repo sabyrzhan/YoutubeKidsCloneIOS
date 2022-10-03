@@ -19,8 +19,7 @@ struct VideoFile: Codable {
     var fileName: String?
     
     func updatePreviewImage(imageView: UIImageView) {
-        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last
-        let filePath = dir?.appendingPathComponent(fileName!)
+        let filePath = VideoFile.getBasePath()?.appendingPathComponent(fileName!)
         let asset = AVURLAsset(url: filePath!)
         let imgGenerator = AVAssetImageGenerator(asset: asset)
         //let cgImage = try? await imgGenerator.image(at: CMTime(value: 10, timescale: 1))
@@ -33,7 +32,6 @@ struct VideoFile: Codable {
                         if let image = image {
                             let uiImage = UIImage(cgImage: image)
                             imageView.image = uiImage
-                            VideoFile.logger.info("Image found. Setting preview image")
                         } else {
                             if let err = err {
                                 VideoFile.logger.error("Preview generation error: \(err.localizedDescription). File path: \(filePath!.absoluteString.removingPercentEncoding!)")
@@ -47,8 +45,7 @@ struct VideoFile: Codable {
     }
     
     static func readFileNames() -> [VideoFile] {
-        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last
-        let fileName = dir?.appendingPathComponent("file_list.json")
+        let fileName = getBasePath()?.appendingPathComponent("file_list.json")
         
         let jsonDecoder = JSONDecoder()
         jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -64,9 +61,20 @@ struct VideoFile: Codable {
         }
         
         for (i, elem) in result.enumerated() {
-            result[i].fileName = elem.fileName!.uppercased()
+            #if targetEnvironment(simulator)
+                result[i].fileName = elem.fileName!.uppercased()
+            #else
+                result[i].fileName = elem.fileName!
+            #endif
         }
         
         return result
+    }
+    
+    static func getBasePath() -> URL? {
+        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last
+        let basePath = dir?.appendingPathComponent("RayanaVideos")
+        
+        return basePath
     }
 }

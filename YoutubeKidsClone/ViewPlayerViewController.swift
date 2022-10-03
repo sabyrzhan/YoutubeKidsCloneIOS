@@ -8,8 +8,11 @@
 import UIKit
 import AVFoundation
 import AVKit
+import os
 
 class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: ViewPlayerViewController.self))
+    
     @IBOutlet weak var videoListCollectionView: UICollectionView!
     @IBOutlet weak var videoPlayerContainerView: UIView!
     
@@ -66,7 +69,7 @@ class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
             let playingPath = String(substr).removingPercentEncoding!
             let videoFilename = videoFile.fileName
             if playingPath == videoFilename {
-                print("Already playing")
+                ViewPlayerViewController.logger.info("Already playing the same video")
                 //videoPlayerContainerView.frame = UIScreen.main.bounds
 //                if let playerLayer = playerLayer {
 //                    print("Player layer is active")
@@ -89,8 +92,7 @@ class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
             }
             player.replaceCurrentItem(with: nil)
         }
-        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last
-        let dir2 = dir?.appendingPathComponent(videoFile.fileName!)
+        let dir2 = VideoFile.getBasePath()?.appendingPathComponent(videoFile.fileName!)
 //        let image = UIImage(contentsOfFile: dir2!.absoluteString)
         
 //        print(FileManager.default.fileExists(atPath: dir2!.absoluteString))
@@ -111,9 +113,11 @@ class ViewPlayerViewController: UIViewController, PlayerViewPreviewDelegate {
             cell?.backgroundColor = .black
             if elem.fileName! == videoFile.fileName! {
                 let indexPath = IndexPath(row: i, section: 0)
-                let cell = videoListCollectionView.cellForItem(at: indexPath)
-                cell?.backgroundColor = .link
                 videoListCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    let cell = self.videoListCollectionView.cellForItem(at: indexPath)
+                    cell?.backgroundColor = .link
+                }
             }
         }
 
@@ -191,29 +195,25 @@ extension ViewPlayerViewController: UICollectionViewDelegate, UICollectionViewDa
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = videoListCollectionView.dequeueReusableCell(withReuseIdentifier: "videoItem", for: indexPath) as! PlayerVideoPreviewCell
         
-        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last
-        
         cell.videoFile = videoFiles[indexPath.row]
         cell.delegate = self
         
     
-        let filePath = dir?.appendingPathComponent(cell.videoFile!.fileName!)
+        let filePath = VideoFile.getBasePath()?.appendingPathComponent(cell.videoFile!.fileName!)
         let asset = AVURLAsset(url: filePath!)
         let imgGenerator = AVAssetImageGenerator(asset: asset)
         //let cgImage = try? await imgGenerator.image(at: CMTime(value: 10, timescale: 1))
         let operationQueue = OperationQueue()
         DispatchQueue.global(qos: .background).async {
             let operation1 = BlockOperation(block: {
-                
                 imgGenerator.generateCGImagesAsynchronously(forTimes: [NSValue(time: CMTime(value: 10, timescale: 1))]) {
                     requestedTime, image, actualTime, result, err in
                     OperationQueue.main.addOperation({
                         if let image = image {
                             let uiImage = UIImage(cgImage: image)
                             cell.previewImage.image = uiImage
-                            print("Setting preview image")
                         } else {
-                            print("Image is null")
+                            ViewPlayerViewController.logger.warning("Image is null for path: \(filePath!)")
                         }
                     })
                 }
