@@ -62,7 +62,7 @@ struct VideoFile: Codable {
         
         for (i, elem) in result.enumerated() {
             #if targetEnvironment(simulator)
-                result[i].fileName = elem.fileName!.uppercased()
+                result[i].fileName = elem.fileName!
             #else
                 result[i].fileName = elem.fileName!
             #endif
